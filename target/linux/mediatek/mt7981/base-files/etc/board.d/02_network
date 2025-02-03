@@ -89,18 +89,12 @@ mtk_facrory_write_mac()
 	local macaddr=$3 #aa:bb:cc:dd:ee:ff
 	local data=""
 
-	part=$(find_mtd_part $part_name)
+	part="$(find_mtd_part $part_name)"
 	if [ -n "$part" ] && [ -n "$macaddr" ]; then
-		local i=1
-		for x in ${macaddr//:/ }; do
-			[ $i -gt 6 ] && break
-			data=${data}"\x${x}"
-			i=$((i+1))
-		done
-		dd if=$part of=/tmp/Factory.backup
-		printf "${data}" | dd conv=notrunc of=/tmp/Factory.backup bs=1 seek=$((${offset}))
-		mtd write /tmp/Factory.backup $part_name
-		rm -rf /tmp/Factory.backup
+		dd if="$part" of="/tmp/Factory.backup"
+		caldata_patch_mac "$macaddr" "0x4" "" "/tmp/Factory.backup"
+		mtd write "/tmp/Factory.backup" "$part_name"
+		rm -rf "/tmp/Factory.backup"
 	fi
 }
 
